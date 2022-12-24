@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <title>A Typewriter created by ChatGPT</title>
+    <style>
+      /* Set the font size and font family of the text */
+      p {
+        font-size: 48px;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      /* Add a subtle animation to the text */
+      p {
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      /* Set the color of the text to a dark shade of blue */
+      p {
+        color: #0b2e59;
+      }
+
+      /* Add a drop shadow to the text */
+      p {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Add a transition effect to the text when the color changes */
+      p {
+        transition: color 0.5s ease-in-out;
+      }
+
+      /* Change the color of the text to a light shade of blue when the user hovers over it */
+      p:hover {
+        color: #8ed1fc;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div></div>
+      <p>{{ typedText }}</p>
+      <div></div>
+    </div>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            // Set up the string to be typed
+            text: "",
+            // Set up an array of words to be typed
+            words: [],
+            // Set up an index to keep track of the current word being typed
+            i: 0,
+            // Set up a flag to indicate whether the typing is finished
+            finished: false,
+          };
+        },
+        computed: {
+          typedText() {
+            // If the string is empty or the typing is finished, return an empty string
+            if (!this.text || this.finished) {
+              return "";
+            }
+            // Otherwise, split the string into an array of words and return the current word being typed plus a space character
+            this.words = this.text.split(" ");
+            return this.words[this.i] + " ";
+          },
+        },
+        watch: {
+          text: {
+            handler() {
+              // Reset the index and finished flag when the string is updated
+              this.i = 0;
+              this.finished = false;
+              // Use setInterval to call a function every 1000 milliseconds (1 second)
+              const intervalId = setInterval(() => {
+                // Increment the index
+                this.i++;
+                // If we've reached the end of the array, set the finished flag to true and clear the interval
+                if (this.i >= this.words.length) {
+                  this.finished = true;
+                  clearInterval(intervalId);
+                }
+              }, 1000);
+            },
+            immediate: true,
+          },
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
