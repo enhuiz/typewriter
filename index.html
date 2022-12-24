@@ -2,43 +2,90 @@
   <head>
     <title>A Typewriter created by ChatGPT</title>
     <style>
-      /* Set the font size and font family of the text */
-      p {
-        font-size: 48px;
-        font-family: "Montserrat", sans-serif;
+      .container {
+        display: flex; /* Use the flex layout */
+        justify-content: center; /* Align the elements horizontally in the center of the container */
+        align-items: center; /* Align the elements vertically in the center of the container */
+        flex-direction: column;
       }
 
-      /* Add a subtle animation to the text */
-      p {
-        animation: fadeIn 1s ease-in-out;
+      textarea {
+        width: 50%; /* Set the width to 80% of the container element */
+        background-color: #fff; /* Set the background color to white */
+        border: 1px solid #ccc; /* Add a 1 pixel solid border with a medium gray color */
+        padding: 20px; /* Add some padding to the textarea */
+
+        /* Add some box shadow to the textarea */
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
       }
 
-      /* Set the color of the text to a dark shade of blue */
-      p {
-        color: #0b2e59;
+      .box {
+        width: 50%; /* Set the width to 80% of the container element */
+        max-height: 30%;
+
+        /* Add some padding and a border to the box */
+        padding: 40px;
+        border: 1px solid #ccc;
+
+        /* Set the background color of the box to white */
+        background-color: #fff;
+
+        /* Add some box shadow to the box */
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+
+        /* Center the box horizontally and vertically within the container element */
+        display: flex;
+        justify-content: left;
+        overflow-y: auto;
       }
 
-      /* Add a drop shadow to the text */
-      p {
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-      }
+      .typed-text {
+        /* Set the font size and font family of the text */
+        font-size: 36px;
+        font-family: "Roboto", sans-serif;
 
-      /* Add a transition effect to the text when the color changes */
-      p {
+        /* Set the color of the text to a dark shade of gray */
+        color: #212121;
+
+        /* Add a subtle transition effect to the text when the color changes */
         transition: color 0.5s ease-in-out;
+
+        /* Change the color of the text to a light shade of gray when the user hovers over it */
+        &:hover {
+          color: #757575;
+        }
       }
 
-      /* Change the color of the text to a light shade of blue when the user hovers over it */
-      p:hover {
-        color: #8ed1fc;
+      /* Add a blinking cursor to the end of the text */
+      .cursor {
+        animation: blink 1s linear infinite;
+        color: #ff5722; /* Set the color of the cursor to the same bright orange color as the highlight */
+      }
+
+      @keyframes blink {
+        0% {
+          visibility: hidden;
+        }
+        50% {
+          visibility: visible;
+        }
+        100% {
+          visibility: hidden;
+        }
       }
     </style>
   </head>
   <body>
     <div id="app">
-      <div></div>
-      <p>{{ typedText }}</p>
-      <div></div>
+      <div class="container">
+        <div class="box">
+          <div v-html="typedText" class="typed-text"></div>
+        </div>
+        <hr />
+        <textarea v-model="text"> </textarea>
+        <hr />
+        Rate (ms): <input v-model="rate" type="number" />
+      </div>
     </div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
@@ -49,43 +96,71 @@
           return {
             // Set up the string to be typed
             text: "",
-            // Set up an array of words to be typed
-            words: [],
             // Set up an index to keep track of the current word being typed
-            i: 0,
-            // Set up a flag to indicate whether the typing is finished
-            finished: false,
+            index: 0,
+            rate: 200,
+            handler: null,
           };
         },
         computed: {
+          words() {
+            return this.text.split(" ").filter((c) => {
+              return c;
+            });
+          },
+          finished() {
+            return this.index >= this.words.length;
+          },
           typedText() {
-            // If the string is empty or the typing is finished, return an empty string
-            if (!this.text || this.finished) {
-              return "";
+            // If the typing is finished, return the entire string
+            if (this.finished) {
+              return this.text;
             }
-            // Otherwise, split the string into an array of words and return the current word being typed plus a space character
-            this.words = this.text.split(" ");
-            return this.words[this.i] + " ";
+
+            // Build a string that includes all of the words up to the current word being typed
+            let typed = "";
+
+            for (let i = 0; i <= this.index; i++) {
+              typed += `${this.words[i]} `;
+            }
+
+            // Add the current word being typed wrapped in a span element with the highlight class
+            typed += `<span class="cursor">▋</span> `;
+
+            // Return the typed string
+            return typed;
+          },
+        },
+        mounted() {
+          this.text = "Hello world.";
+        },
+        methods: {
+          reset() {
+            this.index = 0;
+            clearInterval(this.handler);
+
+            // Use setInterval to call a function every 1000 milliseconds (1 second)
+            this.handler = setInterval(() => {
+              // Increment the index
+              this.index++;
+
+              // If we've reached the end of the array, set the finished flag to true and clear the interval
+              if (this.finished) {
+                clearInterval(this.handler);
+              }
+            }, this.rate);
           },
         },
         watch: {
           text: {
             handler() {
-              // Reset the index and finished flag when the string is updated
-              this.i = 0;
-              this.finished = false;
-              // Use setInterval to call a function every 1000 milliseconds (1 second)
-              const intervalId = setInterval(() => {
-                // Increment the index
-                this.i++;
-                // If we've reached the end of the array, set the finished flag to true and clear the interval
-                if (this.i >= this.words.length) {
-                  this.finished = true;
-                  clearInterval(intervalId);
-                }
-              }, 1000);
+              this.reset();
             },
-            immediate: true,
+          },
+          rate: {
+            handler() {
+              this.reset();
+            },
           },
         },
       }).mount("#app");
